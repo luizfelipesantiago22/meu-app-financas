@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Finanças Pessoais</title>
+<title>Controle Mensal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body {
@@ -19,7 +19,7 @@ body {
 }
 button {
     width: 100%;
-    padding: 15px;
+    padding: 12px;
     background: #22c55e;
     border: none;
     color: black;
@@ -33,42 +33,71 @@ input, select {
     border-radius: 8px;
     border: none;
 }
-h2 { margin-bottom: 20px; }
+.valor { font-size:18px; margin-top:5px; }
+.resultado { font-size:20px; font-weight:bold; }
 </style>
 </head>
 <body>
 
-<h2>Minhas Finanças</h2>
+<h2>Resumo do Mês</h2>
 
 <div class="card">
-<h3>Saldo Atual</h3>
-<p id="saldo">R$ 0,00</p>
+<div>Receitas</div>
+<div class="valor" id="receitas">R$ 0,00</div>
+</div>
+
+<div class="card">
+<div>Despesas Fixas</div>
+<div class="valor" id="fixas">R$ 0,00</div>
+</div>
+
+<div class="card">
+<div>Despesas Variáveis</div>
+<div class="valor" id="variaveis">R$ 0,00</div>
+</div>
+
+<div class="card">
+<div>Resultado</div>
+<div class="resultado" id="resultado">R$ 0,00</div>
 </div>
 
 <div class="card">
 <h3>Novo Lançamento</h3>
-
 <input type="number" id="valor" placeholder="Valor">
 <select id="tipo">
 <option value="receita">Receita</option>
-<option value="despesa">Despesa</option>
+<option value="fixa">Despesa Fixa</option>
+<option value="variavel">Despesa Variável</option>
 </select>
-
 <button onclick="adicionar()">Adicionar</button>
-
 </div>
 
 <script>
 
-let saldo = localStorage.getItem("saldo") 
-? parseFloat(localStorage.getItem("saldo")) 
-: 0;
+let dados = JSON.parse(localStorage.getItem("dados")) || [];
 
-atualizar();
+function salvar(){
+    localStorage.setItem("dados", JSON.stringify(dados));
+}
 
 function atualizar(){
-    document.getElementById("saldo").innerText = 
-    "R$ " + saldo.toFixed(2).replace(".", ",");
+
+    let receitas = 0;
+    let fixas = 0;
+    let variaveis = 0;
+
+    dados.forEach(item => {
+        if(item.tipo === "receita") receitas += item.valor;
+        if(item.tipo === "fixa") fixas += item.valor;
+        if(item.tipo === "variavel") variaveis += item.valor;
+    });
+
+    let resultado = receitas - fixas - variaveis;
+
+    document.getElementById("receitas").innerText = "R$ " + receitas.toFixed(2);
+    document.getElementById("fixas").innerText = "R$ " + fixas.toFixed(2);
+    document.getElementById("variaveis").innerText = "R$ " + variaveis.toFixed(2);
+    document.getElementById("resultado").innerText = "R$ " + resultado.toFixed(2);
 }
 
 function adicionar(){
@@ -77,16 +106,13 @@ function adicionar(){
 
     if(!valor) return;
 
-    if(tipo === "receita"){
-        saldo += valor;
-    } else {
-        saldo -= valor;
-    }
-
-    localStorage.setItem("saldo", saldo);
+    dados.push({valor, tipo});
+    salvar();
     atualizar();
     document.getElementById("valor").value = "";
 }
+
+atualizar();
 
 </script>
 
